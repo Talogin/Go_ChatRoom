@@ -1,4 +1,4 @@
-package Client
+package main
 
 import (
 	"fmt"
@@ -20,16 +20,16 @@ func main() {
 		fmt.Scanf("%d", &key)
 		switch key {
 		case 1:
-			fmt.Println("正在登录")
+			fmt.Println("Login")
 			loop = false
 		case 2:
-			fmt.Println("正在注册")
+			fmt.Println("Register")
 			loop = false
 		case 3:
-			fmt.Println("正在退出")
+			fmt.Println("Exit")
 			loop = false
 		default:
-			fmt.Println("输入有误，请重新输入")
+			fmt.Println("The operation you choose does not exist, please try again.")
 		}
 	}
 
