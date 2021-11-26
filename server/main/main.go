@@ -3,40 +3,55 @@ package main
 import (
 	"fmt"
 	"net"
-	"github.com/go-redis/redis/v8"
+	"time"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 func process(conn net.Conn) {
 
 	defer conn.Close()
-	
+
 	userConnectionHandler := &UserConnectionHandler{
-		Conn : conn,
+		Conn: conn,
 	}
 	err := userConnectionHandler.process()
 	if err != nil {
 		fmt.Println("Communication between server and client=err", err)
-		return 
+		return
 	}
 }
 
 // Initializatin of redis pool
-func init(){
-    pool = &redis.Pool{     
-        MaxIdle:16,    
-        MaxActive:0,    
-        IdleTimeout:300,        
-        Dial: func() (redis.Conn ,error){  
-            return redis.Dial("tcp","localhost:6379")
-        },
-    }
+func initPool() {
+	pool = &redis.Pool{
+		MaxIdle:     2, //空闲数
+		IdleTimeout: 240 * time.Second,
+		MaxActive:   3, //最大数
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", "localhost:6379")
+			if err != nil {
+				return nil, err
+			}
+
+			if _, err := c.Do("AUTH", "12345"); err != nil {
+				c.Close()
+				return nil, err
+			}
+
+			return c, err
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
+	}
 }
 
 var pool *redis.Pool
 
-func main()  {
+func main() {
 
-	
 	//Listen to port 8889
 	fmt.Println("The server is listening to port 8889")
 	In, err := net.Listen("tcp", "0.0.0.0:8889")
@@ -45,13 +60,13 @@ func main()  {
 	}
 
 	//Initialize redis pool
-	init()
+	initPool()
 
 	for {
 		conn, err := In.Accept()
 		if err != nil {
 			fmt.Println("Building net connection failed...")
 		}
-		go process(conn) 
+		go process(conn)
 	}
 }

@@ -1,8 +1,8 @@
 module Go_ChatRoom
 
-go 1.16
+go 1.17
 
 require (
 	github.com/garyburd/redigo v1.6.3
-	github.com/go-redis/redis/v8 v8.11.4
+	github.com/gomodule/redigo v1.8.5
 )
