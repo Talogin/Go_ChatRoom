@@ -1,19 +1,19 @@
 package utils
 
 import (
-	"fmt"
-	"net"
+	"Go_ChatRoom/common/message"
 	"encoding/binary"
 	"encoding/json"
-	"Go_ChatRoom/common/message"
+	"fmt"
+	"net"
 )
 
 type MessageTransformer struct {
-	Conn net.Conn
+	Conn   net.Conn
 	Buffer [8096]byte
 }
 
-func(this *MessageTransformer) WritePkg(mes []byte) (err error) {
+func (this *MessageTransformer) WritePkg(mes []byte) (err error) {
 
 	//Send length of data to the server
 	//1. Calculate the length of data
@@ -26,21 +26,21 @@ func(this *MessageTransformer) WritePkg(mes []byte) (err error) {
 	n, err := this.Conn.Write(this.Buffer[:4])
 	if n != 4 || err != nil {
 		fmt.Println("conn.Write(bytes) fail", err)
-		return 
+		return
 	}
 
 	//Send message data
 	n, err = this.Conn.Write(mes)
 	if n != int(packageLength) || err != nil {
 		fmt.Println("conn.Write(data) fail", err)
-		return 
+		return
 	}
 
 	return
 }
-func(this *MessageTransformer) ReadPkg() (mes message.Message,err error) {
+func (this *MessageTransformer) ReadPkg() (mes message.Message, err error) {
 
-	fmt.Println("读取客户端发送的数据...")
+	fmt.Println("Reading the data from client...")
 
 	//Read package length
 	_, err = this.Conn.Read(this.Buffer[:4])
@@ -53,14 +53,14 @@ func(this *MessageTransformer) ReadPkg() (mes message.Message,err error) {
 	//Read message data
 	n, err := this.Conn.Read(this.Buffer[:packageLength])
 	if n != int(packageLength) || err != nil {
-		return 
+		return
 	}
 
 	err = json.Unmarshal(this.Buffer[:packageLength], &mes)
 	if err != nil {
 		fmt.Println("json.Unmarsha err=", err)
-		return 
+		return
 	}
-	return 
+	return
 
 }

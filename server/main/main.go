@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Go_ChatRoom/server/service"
 	"fmt"
 	"net"
 	"time"
@@ -8,9 +9,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-func process(conn net.Conn) {
-
-	defer conn.Close()
+func connectionProcess(conn net.Conn) {
 
 	userConnectionHandler := &UserConnectionHandler{
 		Conn: conn,
@@ -20,11 +19,12 @@ func process(conn net.Conn) {
 		fmt.Println("Communication between server and client=err", err)
 		return
 	}
+	defer conn.Close()
 }
 
 // Initializatin of redis pool
 func initPool() {
-	pool = &redis.Pool{
+	Pool = &redis.Pool{
 		MaxIdle:     2, //空闲数
 		IdleTimeout: 240 * time.Second,
 		MaxActive:   3, //最大数
@@ -48,7 +48,17 @@ func initPool() {
 	}
 }
 
-var pool *redis.Pool
+func initUserDao() {
+	service.MyUserDao = service.NewUserDao(Pool)
+}
+
+func init() {
+
+	initPool()
+	initUserDao()
+}
+
+var Pool *redis.Pool
 
 func main() {
 
@@ -67,6 +77,6 @@ func main() {
 		if err != nil {
 			fmt.Println("Building net connection failed...")
 		}
-		go process(conn)
+		go connectionProcess(conn)
 	}
 }
